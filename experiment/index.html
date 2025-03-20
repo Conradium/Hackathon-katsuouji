@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR Hologram with QR Code</title>
+    <!-- Using AR.js with A-Frame for easier implementation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aframe/1.2.0/aframe.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ar.js/2.2.2/aframe-ar.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .overlay button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 20px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .message {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            max-width: 80%;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- Initial overlay for camera permission -->
+    <div id="startOverlay" class="overlay">
+        <h2>AR Hologram Experience</h2>
+        <p>This web app will use your camera to display a hologram when you point it at a QR code.</p>
+        <button id="startButton">Start Experience</button>
+    </div>
+    
+    <!-- Status message -->
+    <div id="statusMessage" class="message" style="display: none;">
+        Point your camera at the QR code
+    </div>
+    
+    <!-- AR Scene - Initially hidden -->
+    <a-scene id="arScene" embedded arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;" vr-mode-ui="enabled: false" style="display: none;">
+        <!-- Create a marker for the QR code -->
+        <a-marker type="barcode" value="1">
+            <!-- This is where your 2D "hologram" video will appear -->
+            <a-video id="holoVideo" src="#personVideo" position="0 0.5 0" rotation="-90 0 0" width="1.5" height="2.67"></a-video>
+        </a-marker>
+        
+        <!-- Camera -->
+        <a-entity camera></a-entity>
+        
+        <!-- Load your video -->
+        <a-assets>
+            <video id="personVideo" src="your-video-file.mp4" preload="auto" loop crossorigin="anonymous" muted playsinline></video>
+        </a-assets>
+    </a-scene>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const startOverlay = document.getElementById('startOverlay');
+            const startButton = document.getElementById('startButton');
+            const arScene = document.getElementById('arScene');
+            const statusMessage = document.getElementById('statusMessage');
+            const video = document.getElementById('personVideo');
+            
+            // Handle start button click
+            startButton.addEventListener('click', function() {
+                startAR();
+            });
+            
+            function startAR() {
+                // First ask for camera permission
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                        .then(function(stream) {
+                            // Clean up the stream as AR.js will create its own
+                            stream.getTracks().forEach(track => track.stop());
+                            
+                            // Show AR scene and hide overlay
+                            startOverlay.style.display = 'none';
+                            arScene.style.display = 'block';
+                            statusMessage.style.display = 'block';
+                            
+                            // Try to play video
+                            setTimeout(() => {
+                                video.play().catch(e => console.log('Video play will happen on user interaction'));
+                            }, 1000);
+                        })
+                        .catch(function(error) {
+                            alert('Camera access denied. Please enable camera access in your browser settings and try again.');
+                            console.error('Camera error:', error);
+                        });
+                } else {
+                    alert('Sorry, your browser does not support accessing the camera.');
+                }
+            }
+            
+            // Handle marker detection
+            document.addEventListener('markerFound', function() {
+                statusMessage.textContent = "Hologram detected! Keep the marker in view.";
+                // Ensure video plays
+                video.play().catch(e => console.log('Video play error:', e));
+            });
+            
+            document.addEventListener('markerLost', function() {
+                statusMessage.textContent = "Marker lost. Point your camera at the QR code.";
+            });
+            
+            // Fallback to ensure video plays on user interaction
+            document.addEventListener('click', function() {
+                if (video && video.paused) {
+                    video.play().catch(e => console.log('Video play attempt:', e));
+                }
+            });
+        });
+    </script>
+</body>
+</html>

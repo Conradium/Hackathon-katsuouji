@@ -1,0 +1,45 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>AR Navigation Simulator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div id="app">
+        <div id="simulator-view">
+            <div id="compass-container">
+                <div id="compass">
+                    <div id="compass-north">N</div>
+                    <div id="compass-east">E</div>
+                    <div id="compass-south">S</div>
+                    <div id="compass-west">W</div>
+                    <div id="compass-needle"></div>
+                </div>
+            </div>
+            <div id="ar-overlay"></div>
+            <div id="control-panel">
+                <button id="rotate-left" class="control-button">⟲ Left</button>
+                <button id="move-forward" class="control-button">↑ Move</button>
+                <button id="rotate-right" class="control-button">⟳ Right</button>
+            </div>
+        </div>
+        <div id="map-container">
+            <div id="map">
+                <div id="user-marker"></div>
+                <!-- Point markers will be added here -->
+            </div>
+        </div>
+        <div id="info-panel">
+            <h2>AR Navigation Simulator</h2>
+            <div id="status">Use buttons or arrow keys to move</div>
+            <div id="coordinates">Position: 37.7749, -122.4194 (simulated)</div>
+            <div id="heading">Heading: 0° (North)</div>
+            <div id="nearby-points"></div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
